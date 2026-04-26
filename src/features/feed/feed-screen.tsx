@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   FlatList,
   Platform,
+  Pressable,
   StatusBar,
   StyleSheet,
   Text,
@@ -16,13 +17,18 @@ import { ErrorState } from '../../components/error-state';
 import { LoadingFeed } from '../../components/loading-feed';
 import { PostCard } from '../../components/post-card';
 import { ScreenShell } from '../../components/screen-shell';
+import type { FeedTierFilter } from '../../store/feed-ui-store';
 import { useRootStore } from '../../store/store-provider';
 import { tokens } from '../../theme/tokens';
 import { useFeedQuery } from './use-feed-query';
 
 const topInset = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
 
-const ListTopSpacer = () => <View style={styles.topSpacer} />;
+const tierFilters: { label: string; value: FeedTierFilter }[] = [
+  { label: 'Все', value: 'all' },
+  { label: 'Free', value: 'free' },
+  { label: 'Paid', value: 'paid' },
+];
 
 const Footer = ({
   isLoadingMore,
@@ -95,12 +101,41 @@ export const FeedScreen = observer(() => {
     void feedQuery.fetchNextPage();
   };
 
+  const renderListHeader = () => (
+    <View style={styles.header}>
+      <View style={styles.tabsWrap}>
+        {tierFilters.map((filter) => {
+          const isActive = feedUiStore.selectedTier === filter.value;
+
+          return (
+            <Pressable
+              key={filter.value}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              onPress={() => feedUiStore.setSelectedTier(filter.value)}
+              style={[styles.tierTab, isActive ? styles.tierTabActive : null]}
+            >
+              <Text
+                style={[
+                  styles.tierTabLabel,
+                  isActive ? styles.tierTabLabelActive : null,
+                ]}
+              >
+                {filter.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+
   if (feedQuery.isPending) {
     return (
       <ScreenShell>
         <View style={styles.page}>
           <View style={styles.listContent}>
-            <ListTopSpacer />
+            {renderListHeader()}
             <LoadingFeed />
           </View>
         </View>
@@ -113,7 +148,7 @@ export const FeedScreen = observer(() => {
       <ScreenShell>
         <View style={styles.page}>
           <View style={styles.listContent}>
-            <ListTopSpacer />
+            {renderListHeader()}
             <ErrorState
               onRetry={() => void feedQuery.refetch()}
               details={errorDetails}
@@ -130,7 +165,7 @@ export const FeedScreen = observer(() => {
         data={posts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <PostCard post={item} />}
-        ListHeaderComponent={<ListTopSpacer />}
+        ListHeaderComponent={renderListHeader}
         ListEmptyComponent={<EmptyState />}
         ListFooterComponent={
           <Footer
@@ -155,12 +190,37 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingTop: topInset,
     paddingHorizontal: 12,
     paddingBottom: 20,
   },
-  topSpacer: {
-    height: 12,
+  header: {
+    paddingTop: topInset + 12,
+    paddingBottom: 12,
+  },
+  tabsWrap: {
+    flexDirection: 'row',
+    padding: 4,
+    borderRadius: tokens.radius.md,
+    backgroundColor: tokens.colors.backgroundMuted,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
+  },
+  tierTab: {
+    flex: 1,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tierTabActive: {
+    backgroundColor: tokens.colors.accent,
+  },
+  tierTabLabel: {
+    ...tokens.typography.label,
+    color: tokens.colors.textMuted,
+  },
+  tierTabLabelActive: {
+    color: tokens.colors.accentText,
   },
   separator: {
     height: 12,

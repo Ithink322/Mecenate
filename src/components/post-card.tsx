@@ -37,9 +37,11 @@ const StatsRow = ({
 
 const CoverImage = ({
   uri,
+  isBlurred = false,
   children,
 }: {
   uri: string;
+  isBlurred?: boolean;
   children?: ReactNode;
 }) => {
   const [hasError, setHasError] = useState(false);
@@ -51,6 +53,7 @@ const CoverImage = ({
           source={{ uri }}
           style={StyleSheet.absoluteFillObject}
           resizeMode="cover"
+          blurRadius={isBlurred ? 12 : 0}
           onError={() => setHasError(true)}
         />
       ) : null}
@@ -80,10 +83,11 @@ const PaidOverlay = () => (
   </View>
 );
 
-const PaidSkeleton = () => (
-  <View style={styles.paidSkeletonBlock}>
-    <View style={styles.paidSkeletonLine} />
-    <View style={[styles.paidSkeletonLine, styles.paidSkeletonLineShort]} />
+const PaidPreviewPlaceholder = () => (
+  <View style={styles.paidPreviewPlaceholder}>
+    <Text style={styles.paidPreviewText}>
+      Текст публикации доступен после доната
+    </Text>
   </View>
 );
 
@@ -94,23 +98,23 @@ export const PostCard = ({ post }: PostCardProps) => (
       <Text style={styles.authorName}>{post.author.displayName}</Text>
     </View>
 
-    <CoverImage uri={post.coverUrl}>
+    <CoverImage uri={post.coverUrl} isBlurred={post.tier === 'paid'}>
       {post.tier === 'paid' ? <PaidOverlay /> : null}
     </CoverImage>
 
-    {post.tier === 'paid' ? (
-      <PaidSkeleton />
-    ) : (
-      <View style={styles.content}>
-        <Text style={styles.postTitle}>{post.title}</Text>
+    <View style={styles.content}>
+      <Text style={styles.postTitle}>{post.title}</Text>
+      {post.tier === 'paid' ? (
+        <PaidPreviewPlaceholder />
+      ) : (
         <Text style={styles.preview}>{post.preview}</Text>
-        <StatsRow
-          isLiked={post.isLiked}
-          likesCount={post.likesCount}
-          commentsCount={post.commentsCount}
-        />
-      </View>
-    )}
+      )}
+      <StatsRow
+        isLiked={post.isLiked}
+        likesCount={post.likesCount}
+        commentsCount={post.commentsCount}
+      />
+    </View>
   </View>
 );
 
@@ -226,18 +230,17 @@ const styles = StyleSheet.create({
     ...tokens.typography.bodyStrong,
     color: tokens.colors.accentText,
   },
-  paidSkeletonBlock: {
+  paidPreviewPlaceholder: {
+    borderRadius: tokens.radius.md,
+    backgroundColor: tokens.colors.backgroundMuted,
+    borderWidth: 1,
+    borderColor: tokens.colors.border,
     paddingHorizontal: tokens.spacing.md,
-    paddingTop: tokens.spacing.md,
-    paddingBottom: tokens.spacing.md,
-    gap: tokens.spacing.sm,
+    paddingVertical: tokens.spacing.sm,
+    marginBottom: tokens.spacing.md,
   },
-  paidSkeletonLine: {
-    height: 18,
-    borderRadius: 999,
-    backgroundColor: tokens.colors.skeleton,
-  },
-  paidSkeletonLineShort: {
-    width: '78%',
+  paidPreviewText: {
+    ...tokens.typography.body,
+    color: tokens.colors.textMuted,
   },
 });
