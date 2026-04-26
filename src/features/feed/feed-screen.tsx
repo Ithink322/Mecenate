@@ -26,8 +26,8 @@ const topInset = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
 
 const tierFilters: { label: string; value: FeedTierFilter }[] = [
   { label: 'Все', value: 'all' },
-  { label: 'Free', value: 'free' },
-  { label: 'Paid', value: 'paid' },
+  { label: 'Бесплатные', value: 'free' },
+  { label: 'Платные', value: 'paid' },
 ];
 
 const Footer = ({
