@@ -1,6 +1,6 @@
-# Mecenate Feed Test
+# Mecenate Test
 
-Экран ленты публикаций для тестового задания Mecenate на `React Native + Expo + TypeScript`.
+Лента и детальный экран публикации для тестового задания Mecenate на `React Native + Expo + TypeScript`.
 
 ## Что реализовано
 
@@ -8,6 +8,13 @@
 - курсорная пагинация через `useInfiniteQuery`
 - `pull-to-refresh`
 - платные посты с заглушкой вместо текста
+- таб-фильтр `Все / Бесплатные / Платные`
+- переход из ленты на детальный экран поста
+- детальный экран с полным текстом, обложкой, автором и счётчиками
+- лайк с анимацией счётчика на `react-native-reanimated` и haptic feedback через `expo-haptics`
+- комментарии с lazy load
+- отправка нового комментария
+- real-time обновления лайков и комментариев через WebSocket
 - состояние ошибки с кнопкой повтора
 - разделение на серверное состояние (`React Query`) и UI/session state (`MobX`)
 - дизайн-токены для цветов, отступов, типографики и радиусов
@@ -19,6 +26,9 @@
 - TypeScript
 - MobX
 - React Query
+- WebSocket
+- Reanimated
+- Expo Haptics
 
 ## Запуск
 
@@ -53,6 +63,8 @@ npm run ios
 - `EXPO_PUBLIC_API_BASE_URL` — базовый URL API
 - `EXPO_PUBLIC_USER_ID` — UUID, который уходит в `Authorization: Bearer <uuid>`
 - `EXPO_PUBLIC_SIMULATE_ERROR` — если `true`, приложение добавляет `simulate_error=true` к запросу `/posts` для проверки error state
+
+WebSocket URL строится автоматически из `EXPO_PUBLIC_API_BASE_URL`: `<api-base-url>/ws?token=<EXPO_PUBLIC_USER_ID>`.
 
 ## Полезные команды
 

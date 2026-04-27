@@ -1,3 +1,4 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 import {
@@ -12,6 +13,9 @@ import {
 } from 'react-native';
 
 import { ApiError } from '../../api/http';
+import { updatePostEverywhere } from '../../api/cache-updates';
+import { togglePostLike } from '../../api/posts';
+import { queryKeys } from '../../api/query-keys';
 import type { Post } from '../../api/types';
 import { ErrorState } from '../../components/error-state';
 import { LoadingFeed } from '../../components/loading-feed';
@@ -64,9 +68,29 @@ const EmptyState = () => (
   </View>
 );
 
-export const FeedScreen = observer(() => {
-  const { feedUiStore } = useRootStore();
+interface FeedScreenProps {
+  onOpenPost?: (postId: string) => void;
+}
+
+export const FeedScreen = observer(({ onOpenPost }: FeedScreenProps) => {
+  const { feedUiStore, sessionStore } = useRootStore();
+  const queryClient = useQueryClient();
   const feedQuery = useFeedQuery();
+  const likeMutation = useMutation({
+    mutationFn: (postId: string) =>
+      togglePostLike({
+        apiBaseUrl: sessionStore.apiBaseUrl,
+        userId: sessionStore.userId,
+        postId,
+      }),
+    onSuccess: ({ isLiked, likesCount }, postId) => {
+      updatePostEverywhere(queryClient, postId, (post) => ({
+        ...post,
+        isLiked,
+        likesCount,
+      }));
+    },
+  });
 
   const posts = feedQuery.data?.pages.flatMap((page) => page.posts) ?? [];
   const queryError = feedQuery.error;
@@ -99,6 +123,19 @@ export const FeedScreen = observer(() => {
     }
 
     void feedQuery.fetchNextPage();
+  };
+
+  const handleOpenPost = (post: Post) => {
+    queryClient.setQueryData(queryKeys.post(post.id), post);
+    onOpenPost?.(post.id);
+  };
+
+  const handleLikePost = (post: Post) => {
+    if (likeMutation.isPending) {
+      return;
+    }
+
+    likeMutation.mutate(post.id);
   };
 
   const renderListHeader = () => (
@@ -164,7 +201,13 @@ export const FeedScreen = observer(() => {
       <FlatList<Post>
         data={posts}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <PostCard post={item} />}
+        renderItem={({ item }) => (
+          <PostCard
+            post={item}
+            onPress={handleOpenPost}
+            onLikePress={handleLikePost}
+          />
+        )}
         ListHeaderComponent={renderListHeader}
         ListEmptyComponent={<EmptyState />}
         ListFooterComponent={

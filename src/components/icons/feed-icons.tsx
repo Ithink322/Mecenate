@@ -45,3 +45,34 @@ export const CommentIcon = ({
     </Defs>
   </Svg>
 );
+
+export const BackIcon = ({
+  color = '#242833',
+  width = 22,
+  height = 22,
+  ...props
+}: FeedIconProps) => (
+  <Svg width={width} height={height} viewBox="0 0 22 22" fill="none" {...props}>
+    <Path
+      d="M13.75 5.5L8.25 11L13.75 16.5"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+export const SendIcon = ({
+  color = '#651fff',
+  width = 24,
+  height = 24,
+  ...props
+}: FeedIconProps) => (
+  <Svg width={width} height={height} viewBox="0 0 24 24" fill="none" {...props}>
+    <Path
+      d="M20.4 4.2L3.9 11.15C3.15 11.47 3.16 12.54 3.92 12.83L10.15 15.18L12.5 21.42C12.79 22.18 13.86 22.2 14.18 21.44L21.13 4.94C21.46 4.16 21.18 3.87 20.4 4.2ZM11.05 14.05L18.14 6.96L13.38 18.25L11.75 13.93L7.44 12.31L18.73 7.55L11.05 14.05Z"
+      fill={color}
+    />
+  </Svg>
+);

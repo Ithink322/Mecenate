@@ -1,29 +1,22 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 
-import { fetchFeedPage } from '../../api/posts';
+import { fetchPostComments } from '../../api/posts';
 import { queryKeys } from '../../api/query-keys';
 import { useRootStore } from '../../store/store-provider';
 
-export const useFeedQuery = () => {
-  const { feedUiStore, sessionStore } = useRootStore();
-  const tier = feedUiStore.apiTier;
+export const usePostCommentsQuery = (postId: string) => {
+  const { sessionStore } = useRootStore();
 
   return useInfiniteQuery({
-    queryKey: [
-      ...queryKeys.feed,
-      sessionStore.apiBaseUrl,
-      sessionStore.userId,
-      tier,
-    ],
+    queryKey: queryKeys.comments(postId),
     initialPageParam: null as string | null,
     queryFn: ({ pageParam, signal }) =>
-      fetchFeedPage({
+      fetchPostComments({
         apiBaseUrl: sessionStore.apiBaseUrl,
         userId: sessionStore.userId,
+        postId,
         cursor: pageParam,
-        tier,
         signal,
-        simulateError: sessionStore.simulateError,
       }),
     getNextPageParam: (lastPage) =>
       lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,

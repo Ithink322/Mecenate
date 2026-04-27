@@ -9,24 +9,36 @@ import { CommentIcon, LikeIcon } from './icons/feed-icons';
 
 interface PostCardProps {
   post: Post;
+  onPress?: (post: Post) => void;
+  onLikePress?: (post: Post) => void;
 }
 
 const StatsRow = ({
+  post,
   isLiked,
   likesCount,
   commentsCount,
+  onLikePress,
 }: {
+  post: Post;
   isLiked: boolean;
   likesCount: number;
   commentsCount: number;
+  onLikePress?: (post: Post) => void;
 }) => (
   <View style={styles.statsRow}>
-    <View style={[styles.statPill, isLiked ? styles.statPillLiked : null]}>
+    <Pressable
+      onPress={(event) => {
+        event.stopPropagation();
+        onLikePress?.(post);
+      }}
+      style={[styles.statPill, isLiked ? styles.statPillLiked : null]}
+    >
       <LikeIcon color={isLiked ? '#FFFFFF' : tokens.colors.iconMuted} />
       <Text style={[styles.statValue, isLiked ? styles.statValueLiked : null]}>
         {likesCount}
       </Text>
-    </View>
+    </Pressable>
 
     <View style={styles.statPill}>
       <CommentIcon color={tokens.colors.iconMuted} />
@@ -91,8 +103,12 @@ const PaidPreviewPlaceholder = () => (
   </View>
 );
 
-export const PostCard = ({ post }: PostCardProps) => (
-  <View style={styles.card}>
+export const PostCard = ({ post, onPress, onLikePress }: PostCardProps) => (
+  <Pressable
+    disabled={!onPress}
+    onPress={() => onPress?.(post)}
+    style={({ pressed }) => [styles.card, pressed ? styles.cardPressed : null]}
+  >
     <View style={styles.authorRow}>
       <Avatar name={post.author.displayName} uri={post.author.avatarUrl} />
       <Text style={styles.authorName}>{post.author.displayName}</Text>
@@ -110,12 +126,14 @@ export const PostCard = ({ post }: PostCardProps) => (
         <Text style={styles.preview}>{post.preview}</Text>
       )}
       <StatsRow
+        post={post}
         isLiked={post.isLiked}
         likesCount={post.likesCount}
         commentsCount={post.commentsCount}
+        onLikePress={onLikePress}
       />
     </View>
-  </View>
+  </Pressable>
 );
 
 const styles = StyleSheet.create({
@@ -125,6 +143,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.colors.border,
     overflow: 'hidden',
+  },
+  cardPressed: {
+    opacity: 0.86,
   },
   authorRow: {
     flexDirection: 'row',

@@ -53,27 +53,32 @@ const parseJsonSafely = (payload: string) => {
   }
 };
 
-export const apiGet = async <T>(
+const apiRequest = async <T>(
   path: string,
-  options: RequestOptions,
+  options: RequestOptions & {
+    method?: 'GET' | 'POST';
+    body?: unknown;
+  },
 ): Promise<T> => {
   const requestUrl = buildUrl(options.apiBaseUrl, path, options.query);
   let response: Response;
 
   try {
     response = await fetch(requestUrl, {
-      method: 'GET',
+      method: options.method ?? 'GET',
       headers: {
         Accept: 'application/json',
+        ...(options.body ? { 'Content-Type': 'application/json' } : null),
         Authorization: `Bearer ${options.userId}`,
       },
+      body: options.body ? JSON.stringify(options.body) : undefined,
       signal: options.signal,
     });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'Network request failed';
 
-    console.error('[apiGet] request failed', {
+    console.error('[apiRequest] request failed', {
       url: requestUrl,
       message,
     });
@@ -93,7 +98,7 @@ export const apiGet = async <T>(
     const errorPayload = payload as ApiErrorResponse | null;
     const message = errorPayload?.error?.message ?? 'Не удалось загрузить публикации';
 
-    console.error('[apiGet] bad response', {
+    console.error('[apiRequest] bad response', {
       url: requestUrl,
       status: response.status,
       message,
@@ -109,3 +114,13 @@ export const apiGet = async <T>(
 
   return payload as T;
 };
+
+export const apiGet = async <T>(
+  path: string,
+  options: RequestOptions,
+): Promise<T> => apiRequest<T>(path, options);
+
+export const apiPost = async <T>(
+  path: string,
+  options: RequestOptions & { body?: unknown },
+): Promise<T> => apiRequest<T>(path, { ...options, method: 'POST' });
